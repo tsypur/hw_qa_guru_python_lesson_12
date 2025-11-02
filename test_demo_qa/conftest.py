@@ -2,13 +2,13 @@ import os
 
 import pytest
 from dotenv import load_dotenv
+from selene import browser
 from selenium import webdriver
-from selene import Browser, Config
 from selenium.webdriver.chrome.options import Options
 
 from utils import attach
 
-DEFAULT_BROWSER_VERSION = "127.0"
+DEFAULT_BROWSER_VERSION = "128.0"
 
 
 def pytest_addoption(parser):
@@ -27,6 +27,9 @@ def load_env():
 def browser_window(request):
     browser_version = request.config.getoption('--browser_version')
     browser_version = browser_version if browser_version != "" else DEFAULT_BROWSER_VERSION
+    print('browser version:', browser_version)
+    options = Options()
+    options.headless = True
     options = Options()
     selenoid_capabilities = {
         "browserName": "chrome",
@@ -41,12 +44,14 @@ def browser_window(request):
     login = os.getenv('LOGIN')
     password = os.getenv('PASSWORD')
 
+    print(f"Selenoid full address: https://{login}:{password}@selenoid.autotests.cloud/wd/hub")
+
     driver = webdriver.Remote(
         command_executor=f"https://{login}:{password}@selenoid.autotests.cloud/wd/hub",
         options=options
     )
 
-    browser = Browser(Config(driver))
+    browser.config.driver = driver
 
     browser.config.driver = driver
     browser.config.window_width = 1920
